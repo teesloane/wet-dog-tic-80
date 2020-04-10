@@ -6,28 +6,49 @@
 (var x 96)
 (var y 24)
 
+;; -- STATE: - game and player.
+
+(var GAME {})
+
+
+(var PLR {:jumping false
+          :x       96
+          :y       24
+          :rot     0})
+
+
+;; -- FUNCS: - game and player
+
 (fn plr-move
   []
-  (when (btn 0) (set y (- y 1)))
-  (when (btn 1) (set y (+ y 1)))
-  (when (btn 2) (set x (- x 1)))
-  (when (btn 3) (set x (+ x 1))))
+  (let [{:x prev-x :y prev-y :rot prev-rot} PLR]
+    (when (btn 0) (tset PLR :y (- prev-y 1)))
+    (when (btn 1) (tset PLR :y (+ prev-y 1)))
+    (when (btn 2) (tset PLR :x (- prev-x 1)))
+    (when (btn 3) (tset PLR :x (+ prev-x 1)))))
 
 
 (fn plr-render
   []
-  (let [rot 0]
+  (let [{ : x : y : rot } PLR]
     (spr 256 x y -1 1 0 rot)))
+
 
 (fn render-tile
   []
   (map 0 0 30 17))
 
+
+;; -- MISC.
+
+
+;; -- KICK IT OFF 👞 👢 👟
+
 (global TIC
  (fn tic []
-  (plr-move)
   (cls 0)
   (render-tile)
   ;; rendering sprite.
   (plr-render)
+  (plr-move)
   (set t (+ t 1))))
