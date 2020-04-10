@@ -1,0 +1,18 @@
+#+TITLE: Readme
+
+* Wet Dog
+
+#+BEGIN_QUOTE
+For a period of time, the recurring dreams always ended the same way: a dog sitting in the rain. I had to get there with my umbrella and keep it dry, even if just for a second.
+#+END_QUOTE
+
+A story about rain, dogs, wind, dreams, &tc.
+
+* Contributing
+
+Here is how you can get started contributing.
+
+1. Clone this repo.
+2. In your terminal run =make dev=.
+3. Open your editor and edit =wetdog.fnl=.
+4. Don't edit code in the tic-80 editor, it'll bork stuff.
