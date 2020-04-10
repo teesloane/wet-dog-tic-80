@@ -2,23 +2,12 @@
 ;; desc:   Wet Dog.
 ;; script: fennel
 
-(var t 0)
-(var x 96)
-(var y 24)
-
-;; (lua "print('donothing')" "function (sprID,bit) return peek(0x14400+sprID)>>bit&1==1 end")
-
-;; (var fget (lua "print('donothing')" "function dothing(x y) return x + y end"))
-
 (fn get-flag
   [spr-id flag]
-  ;; (lua "print('')" (.. "peek(0x14400+" spr-id ")>>" flag "&1==1"))
-  (let [x (.. spr-id " + " flag)]
-    (lua "print('')" x)))
+  "Inlines lua to fetch if a flag is on for a sprite"
+  (let [lam (lua "print('')" "function (sprID, bit) return peek(0x14400+sprID)>>bit&1==1 end")]
+    (lam spr-id flag)))
 
-;; -- STATE: - game and player.
-
-(var GAME {})
 
 (var PLR {:jumping false
           :x       120
@@ -42,12 +31,12 @@
         y1 (+ y cr.y)
         x2 (+ x1 (- cr.w 1))
         y2 (+ y1 (- cr.y 1))]
-    (print (mget PLR.x PLR.y) 50 50)))
+    nil))
 
 
 (fn can-move-naive
   []
-  (print (get-flag 2 2))
+  (print (get-flag 1 7))
   (let [{: y} PLR]
     (tset PLR :y (+ y 1))))
 
@@ -78,8 +67,5 @@
  (fn tic []
   (cls 0)
   (render-tile)
-  ;; rendering sprite.
-  (plr-doall)
-  ;; (plr-render)
-  ;; (plr-move)
-  (set t (+ t 1))))
+  (plr-doall)))
+  ;; (set t (+ t 1))))
