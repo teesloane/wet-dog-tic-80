@@ -8,7 +8,8 @@
 
 (fn render-plr
   []
-  (spr 256 x y))
+  (let [rot 0]
+    (spr 256 x y -1 1 0 rot)))
 
 (fn render-tile
   []
@@ -21,8 +22,8 @@
   (when (btn 2) (set x (- x 1)))
   (when (btn 3) (set x (+ x 1)))
   (cls 0)
-  (render-tile)
-  (print "soyorltlaabc")
-  (spr 005 x y 3 1 0 2 2)
+  ;; background renders
+  ;; (render-tile)
+  (render-plr)
+  ;; rendering sprite.
   (set t (+ t 1))))
-
