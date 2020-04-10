@@ -22,8 +22,7 @@
   (when (btn 2) (set x (- x 1)))
   (when (btn 3) (set x (+ x 1)))
   (cls 0)
-  ;; background renders
-  ;; (render-tile)
-  (render-plr)
+  (render-tile)
   ;; rendering sprite.
+  (render-plr)
   (set t (+ t 1))))
