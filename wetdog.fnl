@@ -9,36 +9,63 @@
     (lam spr-id flag)))
 
 
+(fn spr-solid? [spr-id]
+  (get-flag spr-id 0))
+
 (var PLR {:jumping false
           :x       120
           :y       10
+          :vx      0
+          :vy      0
           :rot     0})
+
+(fn spv [p v]
+  "Sets a players velocity for prop p with val v"
+  (tset PLR p v))
+
+(fn set-plr-pos []
+  (tset PLR :x (+ PLR.x PLR.vx))
+  (tset PLR :y (+ PLR.y PLR.vy)))
 
 
 ;; -- FUNCS: - game and player
+(fn is-solid? [x y]
+  "Takes an entity with an x/y position and checks if the things around it are solid."
+  (let [map-item  (mget (// x 8) (// y 8))]
+    (spr-solid? map-item)))
 
 (fn plr-move
   []
-  (let [{:x prev-x :y prev-y :rot prev-rot} PLR]
-    (when (btn 0) (tset PLR :y (- prev-y 1)))
-    (when (btn 1) (tset PLR :y (+ prev-y 1)))
-    (when (btn 2) (tset PLR :x (- prev-x 1)))
-    (when (btn 3) (tset PLR :x (+ prev-x 1)))))
+  (let [{: x : y : rot } PLR]
+    ;; General movement.
+    (when (btn 0) (spv :vy -1))
+    (when (btn 1) (spv :vy 1))
+    (when (btn 2) (spv :vx -1))
+    (when (btn 3) (spv :vx 1))
 
-(fn can-move [x y cr]
-  "Determines if a thing can move."
-  (let [x1 (+ x cr.x)
-        y1 (+ y cr.y)
-        x2 (+ x1 (- cr.w 1))
-        y2 (+ y1 (- cr.y 1))]
-    nil))
+    ;; X collisions.
+    (when (or (is-solid? (+ x PLR.vx)   (+ y PLR.vy))
+              (is-solid? (+ x 7 PLR.vx) (+ y PLR.vy))
+              (is-solid? (+ x PLR.vx)   (+ y 7 PLR.vy))
+              (is-solid? (+ x 7 PLR.vx) (+ y 7 PLR.vy)))
+      (spv :vx 0))
 
+    (when (or (is-solid? (+ x PLR.vx) (+ y PLR.vx 8))
+              (is-solid? (+ x PLR.vx 7) (+ y 8 PLR.vy)))
+      (spv :vy 0))
 
-(fn can-move-naive
-  []
-  (print (get-flag 1 7))
-  (let [{: y} PLR]
-    (tset PLR :y (+ y 1))))
+    ;; Gravity
+    (if (is-solid? (+ x PLR.vx) (+ y 8 PLR.vy))
+      (spv :vy 0)
+      (spv :vy (+ PLR.vy 1)))
+
+    ;; Jumping
+    (when (and (btnp 0) (= PLR.vy 0)) (spv :vy -10.5))
+
+    ;; set the pos, and then reset the velocity.
+    (set-plr-pos)
+    (spv :vx 0) (spv :vy 0)))
+
 
 
 (fn plr-render
@@ -48,17 +75,12 @@
 
 (fn plr-doall
   []
-  (can-move 10 20 {"x" 3 "y" 1 "w" 20 "h" 20})
-  (can-move-naive)
   (plr-render)
   (plr-move))
 
 (fn render-tile
   []
   (map 0 0 30 17))
-
-
-;; -- MISC.
 
 
 ;; -- KICK IT OFF 👞 👢 👟

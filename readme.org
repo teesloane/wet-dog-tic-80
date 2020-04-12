@@ -16,3 +16,8 @@ Here is how you can get started contributing.
 2. In your terminal run =make dev=.
 3. Open your editor and edit =wetdog.fnl=.
 4. Don't edit code in the tic-80 editor, it'll bork stuff.
+
+** Sprite Flag Table:
+| Flag    | Purpose   |
+|---------+-----------|
+| 0 (red) | Is solid. |
