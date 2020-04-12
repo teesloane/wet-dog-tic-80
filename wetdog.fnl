@@ -2,15 +2,8 @@
 ;; desc:   Wet Dog.
 ;; script: fennel
 
-(fn get-flag
-  [spr-id flag]
-  "Inlines lua to fetch if a flag is on for a sprite"
-  (let [lam (lua "print('')" "function (sprID, bit) return peek(0x14400+sprID)>>bit&1==1 end")]
-    (lam spr-id flag)))
 
 
-(fn spr-solid? [spr-id]
-  (get-flag spr-id 0))
 
 (var PLR {:jumping false
           :x       120
@@ -18,6 +11,23 @@
           :vx      0
           :vy      0
           :rot     0})
+
+;; Helpers
+(fn get-flag
+  [spr-id flag]
+  "Inlines lua to fetch if a flag is on for a sprite"
+  (let [lam (lua "print('')" "function (sprID, bit) return peek(0x14400+sprID)>>bit&1==1 end")]
+    (lam spr-id flag)))
+
+(fn spr-solid? [spr-id]
+  (get-flag spr-id 0))
+
+(fn is-solid? [x y]
+  "Takes an entity with an x/y position and checks if the things around it are solid."
+  (let [map-item  (mget (// x 8) (// y 8))]
+    (spr-solid? map-item)))
+
+;; -- Player Fns.
 
 (fn spv [p v]
   "Sets a players velocity for prop p with val v"
@@ -27,15 +37,9 @@
   (tset PLR :x (+ PLR.x PLR.vx))
   (tset PLR :y (+ PLR.y PLR.vy)))
 
-
-;; -- FUNCS: - game and player
-(fn is-solid? [x y]
-  "Takes an entity with an x/y position and checks if the things around it are solid."
-  (let [map-item  (mget (// x 8) (// y 8))]
-    (spr-solid? map-item)))
-
 (fn plr-move
   []
+  "Handles movement, collision and (TODO) jumping."
   (let [{: x : y : rot } PLR]
     ;; General movement.
     (when (btn 0) (spv :vy -1))
@@ -66,10 +70,9 @@
     (set-plr-pos)
     (spv :vx 0) (spv :vy 0)))
 
-
-
 (fn plr-render
   []
+  "Responsible for actually painting the player to screen"
   (let [{ : x : y : rot } PLR]
     (spr 256 x y -1 1 0 rot)))
 
@@ -81,7 +84,6 @@
 (fn render-tile
   []
   (map 0 0 30 17))
-
 
 ;; -- KICK IT OFF 👞 👢 👟
 
