@@ -94,8 +94,8 @@
 
     ;; Jumping
     (plr-jump)
-
     ;; set the pos, and then reset the velocity.
+    (set-plr-pos) ;; set pos
     (spv :vx 0) (spv :vy 0)))
 
 (fn plr-render
