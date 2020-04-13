@@ -62,7 +62,7 @@
 
 (fn plr-move
   []
-  "Handles movement, collision and (TODO) jumping."
+  "Handles movement, collision and jumping."
   (let [{: x : y : rot } PLR]
     ;; General movement.
     (when (btn 1) (spv :vy 1))
@@ -77,26 +77,25 @@
               (is-solid? (+ x 7 PLR.vx) (+ y 7 PLR.vy)))
       (spv :vx 0))
 
-    ;; is on y ground.
+    ;; Y collisions
     (when (or (is-solid? (+ x PLR.vx) (+ y PLR.vy 8))
-              (is-solid? (+ x PLR.vx) (+ y PLR.vy))
-              (is-solid? (+ x ) (+ y 1))
+              (is-solid? (+ x 8) y)
               (is-solid? (+ x PLR.vx 7) (+ y 8 PLR.vy)))
+
       (spv :grounded true)
       (spv :jump-idx 0)
       (spv :vy 0))
 
     ;; Gravity
-    (if (is-solid? (+ x PLR.vx) (+ y 8 PLR.vy))
+    (if (or (is-solid? (+ x PLR.vx) (+ y 8 PLR.vy))
+            (is-solid? (+ x 7 PLR.vx) (+ y 8 PLR.vy)))
       (spv :vy 0)
       (spv :vy (+ PLR.vy 1)))
 
     ;; Jumping
     (plr-jump)
-    ;; (when (and (btnp 0) (= PLR.vy 0)) (spv :vy -10.5))
 
     ;; set the pos, and then reset the velocity.
-    (set-plr-pos)
     (spv :vx 0) (spv :vy 0)))
 
 (fn plr-render
