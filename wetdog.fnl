@@ -7,18 +7,25 @@
 
 
 (var PLR {:jumping  false
-          :x        120
-          :y        100
+          :x       79
+          :y       85
           :vx       0
           :vy       0
           :rot      0
           :grounded false
           :jump-idx 0})
 
+(var DEBUG true)
+(fn ppp
+  []
+  (print (.. "p@: " PLR.x "/" PLR.y " @tile: " (// PLR.x 8) "/" (// PLR.y 8)) 0 0))
+
+
+
 ;; Helpers
 (fn get-flag
   [spr-id flag]
-  "Inlines lua to fetch if a flag is on for a sprite"
+  "Inlines lua to fetch if a flag is on for a sprite HACK HACK HACK"
   (let [lam (lua "print('')" "function (sprID, bit) return peek(0x14400+sprID)>>bit&1==1 end")]
     (lam spr-id flag)))
 
@@ -29,6 +36,9 @@
   "Takes an entity with an x/y position and checks if the things around it are solid."
   (let [map-item  (mget (// x 8) (// y 8))]
     (spr-solid? map-item)))
+
+(fn map-check [x y]
+  (mset (// x 8) (// y 8) 4))
 
 ;; -- Player Fns.
 
@@ -68,7 +78,9 @@
       (spv :vx 0))
 
     ;; is on y ground.
-    (when (or (is-solid? (+ x PLR.vx) (+ y PLR.vx 8))
+    (when (or (is-solid? (+ x PLR.vx) (+ y PLR.vy 8))
+              (is-solid? (+ x PLR.vx) (+ y PLR.vy))
+              (is-solid? (+ x ) (+ y 1))
               (is-solid? (+ x PLR.vx 7) (+ y 8 PLR.vy)))
       (spv :grounded true)
       (spv :jump-idx 0)
@@ -108,5 +120,6 @@
  (fn tic []
   (cls 0)
   (render-tile)
-  (plr-doall)))
+  (plr-doall)
+  (when DEBUG (ppp))))
   ;; (set t (+ t 1))))
