@@ -2,24 +2,34 @@
 ;; desc:   Wet Dog.
 ;; script: fennel
 
+;; debug
+(var DBG [])
+(fn pp [s]
+  "add item to the debug list"
+  (table.insert DBG s))
+
+(fn ppp
+  []
+  (when (> (length DBG) 0)
+    (each [i val (ipairs DBG)]
+          (print val 0 (* 10 i))))
+  (set DBG []))
+
+
+;; CONSTS
 
 (var JUMP-SEQ [-3 -3 -3 -3 -2 -2 -2 -2  -1 -1 0 0 0 0 0])
-
-
+(var GRAVITY 1)
 (var PLR {:jumping  false
-          :x       79
-          :y       85
+          :x        79
+          :y        85
           :vx       0
           :vy       0
           :rot      0
+          :spr      256
           :grounded false
+          :um-open  false
           :jump-idx 0})
-
-(var DEBUG true)
-(fn ppp
-  []
-  (print (.. "p@: " PLR.x "/" PLR.y " @tile: " (// PLR.x 8) "/" (// PLR.y 8)) 0 0))
-
 
 
 ;; Helpers
@@ -49,6 +59,20 @@
 (fn set-plr-pos []
   (tset PLR :x (+ PLR.x PLR.vx))
   (tset PLR :y (+ PLR.y PLR.vy)))
+
+(fn plr-umbrella []
+  "Toggles umbrella / gravity"
+  (when (btnp 5)
+    (if PLR.um-open
+      (do
+        (spv :um-open false)
+        (set GRAVITY 1)
+        (spv :spr 256))
+      (do
+        (spv :um-open true)
+        (set GRAVITY 0.25)
+        (spv :spr 257)))))
+
 
 (fn plr-jump []
   "move player through JUMP-DY seq, if they can move."
@@ -90,22 +114,23 @@
     (if (or (is-solid? (+ x PLR.vx) (+ y 8 PLR.vy))
             (is-solid? (+ x 7 PLR.vx) (+ y 8 PLR.vy)))
       (spv :vy 0)
-      (spv :vy (+ PLR.vy 1)))
+      (spv :vy (+ PLR.vy GRAVITY)))
 
     ;; Jumping
     (plr-jump)
     ;; set the pos, and then reset the velocity.
-    (set-plr-pos) ;; set pos
+    (set-plr-pos)
     (spv :vx 0) (spv :vy 0)))
 
 (fn plr-render
   []
   "Responsible for actually painting the player to screen"
   (let [{ : x : y : rot } PLR]
-    (spr 256 x y -1 1 0 rot)))
+    (spr PLR.spr x y -1 1 0 rot)))
 
 (fn plr-doall
   []
+  (plr-umbrella)
   (plr-render)
   (plr-move))
 
@@ -120,5 +145,5 @@
   (cls 0)
   (render-tile)
   (plr-doall)
-  (when DEBUG (ppp))))
+  (ppp)))
   ;; (set t (+ t 1))))
