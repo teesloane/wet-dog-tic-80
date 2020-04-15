@@ -35,19 +35,12 @@
           :um-open  false
           :jump-idx 0})
 
-
-;; init
-
-
-
 ;; Helpers
 (fn get-flag
   [spr-id flag]
   "Inlines lua to fetch if a flag is on for a sprite HACK HACK HACK"
   (let [lam (lua "print('')" "function (sprID, bit) return peek(0x14400+sprID)>>bit&1==1 end")]
     (lam spr-id flag)))
-
-
 
 (fn spr-solid? [spr-id]
   (get-flag spr-id 0))
@@ -153,12 +146,17 @@
         rnd-y-e (+ 3 (math.random 0 5) rnd-y-s)]
     {:x1 rnd-x-s :x2 rnd-x-s :y1 rnd-y-s :y2 rnd-y-e}))
 
+(fn env-rain-touching-plr? [x y]
+  "Check if vals at x and y are touching the player."
+  (and
+   (= (// x 8) (// (+ PLR.x 1) 8))
+   (= (// y 8) (// PLR.y 8))))
 
 (fn env-rain-init []
-  ;; setup the rain
+  "sets up rain before game loop."
   (set RAIN [])
-  (for [i 1 DISP-W]
-    (let [make-rain? (> (math.random 0 1) 0)
+  (for [i 1 800]
+    (let [make-rain? (> (math.random 0 1) -1)
           rnd-y-s    (math.random 0 136)]
       (when make-rain?
         (table.insert RAIN (env-rain-new))))))
@@ -168,14 +166,25 @@
     (let [{: x1 : x2 : y1 : y2} (. RAIN i)]
       (line x1 y1 x2 y2 9))))
 
+(fn env-rain-gen
+  [x1 x2 y1 y2 new-y1 new-y2]
+  "Checks if rain is colliding / needs to be regen'd"
+  (if (> new-y2 DISP-H) ;; if rain goes past display height
+    (env-rain-new 0)
+    (if (or (is-solid? x2 y2)
+            (touching-plr? x2 y2)) ;;
+      (if (not (= y2 new-y1)) ;; top of drop hasn't caught up to bottom.
+        {:x1 x1 :x2 x2 :y1 new-y1 :y2 y2}
+        (env-rain-new 0))
+      {:x1 x1 :x2 x2 :y1 new-y1 :y2 new-y2})))
+
 (fn env-rain-update []
   (for [i 1 (length RAIN)]
     (let [{: x1 : x2 : y1 : y2} (. RAIN i)
           new-y1                (+ y1 1)
           new-y2                (+ y2 1)
-          new-rain-data         (if (> new-y2 DISP-H)
-                                  (env-rain-new 0)
-                                  {:x1 x1 :x2 x2 :y1 new-y1 :y2 new-y2})]
+          new-rain-data         (env-rain-gen x1 x2 y1 y2 new-y1 new-y2)]
+      ;; {:x1 x1 :x2 x2 :y1 new-y1 :y2 y2}
       (tset RAIN i new-rain-data))))
 
 (fn env-doall
