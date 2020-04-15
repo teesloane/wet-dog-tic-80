@@ -35,6 +35,11 @@
           :um-open  false
           :jump-idx 0})
 
+
+;; init
+
+
+
 ;; Helpers
 (fn get-flag
   [spr-id flag]
@@ -49,6 +54,7 @@
   "Takes an entity with an x/y position and checks if the things around it are solid."
   (let [map-item  (mget (// x 8) (// y 8))]
     (spr-solid? map-item)))
+
 
 (fn map-check [x y]
   (mset (// x 8) (// y 8) 4))
@@ -166,17 +172,20 @@
     (let [{: x1 : x2 : y1 : y2} (. RAIN i)]
       (line x1 y1 x2 y2 9))))
 
+
 (fn env-rain-gen
   [x1 x2 y1 y2 new-y1 new-y2]
   "Checks if rain is colliding / needs to be regen'd"
   (if (> new-y2 DISP-H) ;; if rain goes past display height
     (env-rain-new 0)
     (if (or (is-solid? x2 y2)
-            (touching-plr? x2 y2)) ;;
+            (env-rain-touching-plr? x2 y2)) ;;
       (if (not (= y2 new-y1)) ;; top of drop hasn't caught up to bottom.
         {:x1 x1 :x2 x2 :y1 new-y1 :y2 y2}
         (env-rain-new 0))
       {:x1 x1 :x2 x2 :y1 new-y1 :y2 new-y2})))
+
+
 
 (fn env-rain-update []
   (for [i 1 (length RAIN)]
