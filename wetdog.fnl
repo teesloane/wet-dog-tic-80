@@ -38,15 +38,6 @@
 
 ;; init
 
-(fn init []
-  ;; setup the rain
-  (for [i 1 DISP-W]
-    (let [make-rain? (> (math.random 0 1) 0)
-          rnd-y-s    (math.random 0 136)]
-      (when make-rain?
-        (print "foo")
-        (table.insert RAIN {:x1 i :x2 i :y1 rnd-y-s :y2 (+ rnd-y-s 20)})))))
-
 
 
 ;; Helpers
@@ -156,17 +147,41 @@
 ;; -- env-funcs --
 
 ;; -- Rain --
-(fn env-rain []
-  (add-print PLR.x)
-  (add-print (math.random 0 1))
-  (print (length RAIN) 30 30)
+(fn env-rain-new []
+  (let [rnd-x-s (math.random 0 DISP-W)
+        rnd-y-s (- (math.random 0 DISP-H) DISP-H)
+        rnd-y-e (+ 3 (math.random 0 5) rnd-y-s)]
+    {:x1 rnd-x-s :x2 rnd-x-s :y1 rnd-y-s :y2 rnd-y-e}))
+
+
+(fn env-rain-init []
+  ;; setup the rain
+  (set RAIN [])
+  (for [i 1 DISP-W]
+    (let [make-rain? (> (math.random 0 1) 0)
+          rnd-y-s    (math.random 0 136)]
+      (when make-rain?
+        (table.insert RAIN (env-rain-new))))))
+
+(fn env-rain-rndr []
   (for [i 1 (length RAIN)]
     (let [{: x1 : x2 : y1 : y2} (. RAIN i)]
       (line x1 y1 x2 y2 9))))
 
+(fn env-rain-update []
+  (for [i 1 (length RAIN)]
+    (let [{: x1 : x2 : y1 : y2} (. RAIN i)
+          new-y1                (+ y1 1)
+          new-y2                (+ y2 1)
+          new-rain-data         (if (> new-y2 DISP-H)
+                                  (env-rain-new 0)
+                                  {:x1 x1 :x2 x2 :y1 new-y1 :y2 new-y2})]
+      (tset RAIN i new-rain-data))))
+
 (fn env-doall
   []
-  (env-rain))
+  (env-rain-rndr)
+  (env-rain-update))
 
 ;; tiles.
 
@@ -176,7 +191,7 @@
 
 ;; -- KICK IT OFF 👞 👢 👟
 
-(init)
+(env-rain-init)
 (global TIC
  (fn tic []
   (cls 0)
