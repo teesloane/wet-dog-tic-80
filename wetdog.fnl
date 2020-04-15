@@ -4,7 +4,7 @@
 
 ;; debug
 (var DBG [])
-(fn pp [s]
+(fn add-print [s]
   "add item to the debug list"
   (table.insert DBG s))
 
@@ -15,11 +15,15 @@
           (print val 0 (* 10 i))))
   (set DBG []))
 
+(var t 0)
 
 ;; CONSTS
 
 (var JUMP-SEQ [-3 -3 -3 -3 -2 -2 -2 -2  -1 -1 0 0 0 0 0])
 (var GRAVITY 1)
+(var DISP-W 240)
+(var DISP-H 136)
+(var RAIN [])
 (var PLR {:jumping  false
           :x        79
           :y        85
@@ -32,12 +36,27 @@
           :jump-idx 0})
 
 
+;; init
+
+(fn init []
+  ;; setup the rain
+  (for [i 1 DISP-W]
+    (let [make-rain? (> (math.random 0 1) 0)
+          rnd-y-s    (math.random 0 136)]
+      (when make-rain?
+        (print "foo")
+        (table.insert RAIN {:x1 i :x2 i :y1 rnd-y-s :y2 (+ rnd-y-s 20)})))))
+
+
+
 ;; Helpers
 (fn get-flag
   [spr-id flag]
   "Inlines lua to fetch if a flag is on for a sprite HACK HACK HACK"
   (let [lam (lua "print('')" "function (sprID, bit) return peek(0x14400+sprID)>>bit&1==1 end")]
     (lam spr-id flag)))
+
+
 
 (fn spr-solid? [spr-id]
   (get-flag spr-id 0))
@@ -72,7 +91,6 @@
         (spv :um-open true)
         (set GRAVITY 0.25)
         (spv :spr 257)))))
-
 
 (fn plr-jump []
   "move player through JUMP-DY seq, if they can move."
@@ -134,16 +152,36 @@
   (plr-render)
   (plr-move))
 
+
+;; -- env-funcs --
+
+;; -- Rain --
+(fn env-rain []
+  (add-print PLR.x)
+  (add-print (math.random 0 1))
+  (print (length RAIN) 30 30)
+  (for [i 1 (length RAIN)]
+    (let [{: x1 : x2 : y1 : y2} (. RAIN i)]
+      (line x1 y1 x2 y2 9))))
+
+(fn env-doall
+  []
+  (env-rain))
+
+;; tiles.
+
 (fn render-tile
   []
   (map 0 0 30 17))
 
 ;; -- KICK IT OFF 👞 👢 👟
 
+(init)
 (global TIC
  (fn tic []
   (cls 0)
   (render-tile)
+  (env-doall)
   (plr-doall)
-  (ppp)))
-  ;; (set t (+ t 1))))
+  (ppp)
+  (set t (+ t 1))))
