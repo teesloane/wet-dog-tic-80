@@ -35,10 +35,12 @@
           :um-open  false
           :jump-idx 0})
 
+(var DOG {:covered false
+          :spr     271
+          :x       200
+          :y       32})
 
 ;; init
-
-
 
 ;; Helpers
 (fn get-flag
@@ -54,7 +56,6 @@
   "Takes an entity with an x/y position and checks if the things around it are solid."
   (let [map-item  (mget (// x 8) (// y 8))]
     (spr-solid? map-item)))
-
 
 (fn map-check [x y]
   (mset (// x 8) (// y 8) 4))
@@ -143,6 +144,15 @@
   (plr-move))
 
 
+;; -- the dog --
+
+
+(fn dog-render
+  []
+  "Draw the dog."
+  (let [{ : x : y : rot } DOG]
+    (spr DOG.spr x y -1 1 0 rot)))
+
 ;; -- env-funcs --
 
 ;; -- Rain --
@@ -216,5 +226,6 @@
   (render-tile)
   (env-doall)
   (plr-doall)
+  (dog-render)
   (ppp)
   (set t (+ t 1))))
