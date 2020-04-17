@@ -135,7 +135,7 @@
   []
   "Responsible for actually painting the player to screen"
   (let [{ : x : y : rot } PLR]
-    (spr PLR.spr x y -1 1 0 rot)))
+    (spr PLR.spr x y 0 1 0 rot)))
 
 (fn plr-doall
   []
@@ -225,7 +225,7 @@
   (cls 0)
   (render-tile)
   (env-doall)
-  (plr-doall)
   (dog-render)
+  (plr-doall)
   (ppp)
   (set t (+ t 1))))
