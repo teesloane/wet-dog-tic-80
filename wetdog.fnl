@@ -2,6 +2,12 @@
 ;; desc:   Wet Dog.
 ;; script: fennel
 
+;; notes
+;; env = environment
+;; lvl = level
+;; PLR = player
+;; DOG = Poor ol' pup
+
 ;; debug
 (var DBG [])
 (fn add-print [s]
@@ -12,12 +18,12 @@
   []
   (when (> (length DBG) 0)
     (each [i val (ipairs DBG)]
-          (print val 0 (* 10 i))))
+          (print val 5 (* 10 i) 3)))
   (set DBG []))
 
 (var t 0)
 
-;; CONSTS
+;; -- &s: CONSTS --
 
 (var JUMP-SEQ [-3 -3 -3 -3 -2 -2 -2 -2  -1 -1 0 0 0 0 0])
 (var GRAVITY 1)
@@ -35,14 +41,17 @@
           :um-open  false
           :jump-idx 0})
 
+(var LVL {:complete false
+          :seg 0})
+(fn slv [p v] (tset LVL p v))
+
 (var DOG {:covered false
           :spr     271
           :x       200
           :y       32})
 
-;; init
+;; -- &s: HELPERS --
 
-;; Helpers
 (fn get-flag
   [spr-id flag]
   "Inlines lua to fetch if a flag is on for a sprite HACK HACK HACK"
@@ -60,7 +69,15 @@
 (fn map-check [x y]
   (mset (// x 8) (// y 8) 4))
 
-;; -- Player Fns.
+
+;; -- &s: LVL --
+
+(fn lvl-doall
+  []
+  (when LVL.complete
+    (print "level complete" 25 25 3)))
+
+;; -- &s: PLR --
 
 (fn spv [p v]
   "Sets a players velocity for prop p with val v"
@@ -144,18 +161,31 @@
   (plr-move))
 
 
-;; -- the dog --
+;; -- &s: DOG --
+(fn dog-covered? []
+  (and
+   PLR.um-open
+   (or
+    (and (= (// (+ 2 PLR.x) 8) (// (+ 2 DOG.x) 8))
+         (= (//  PLR.y 8) (// DOG.y 8)))
 
+    (and (= (// (-  PLR.x 2) 8) (// (- DOG.x 2) 8))
+         (= (//  PLR.y 8) (// DOG.y 8)))
+
+    (and (= (// PLR.x 8) (// DOG.x 8))
+         (= (// PLR.y 8) (// DOG.y 8))))))
 
 (fn dog-render
   []
   "Draw the dog."
   (let [{ : x : y : rot } DOG]
-    (spr DOG.spr x y -1 1 0 rot)))
+    (spr DOG.spr x y -1 1 0 rot)
+    (when (dog-covered?) (slv :complete true))))
 
-;; -- env-funcs --
+;; -- &s: ENV --
 
-;; -- Rain --
+;; Rain --
+
 (fn env-rain-new []
   (let [rnd-x-s (math.random 0 DISP-W)
         rnd-y-s (- (math.random 0 DISP-H) DISP-H)
@@ -182,7 +212,6 @@
     (let [{: x1 : x2 : y1 : y2} (. RAIN i)]
       (line x1 y1 x2 y2 9))))
 
-
 (fn env-rain-gen
   [x1 x2 y1 y2 new-y1 new-y2]
   "Checks if rain is colliding / needs to be regen'd"
@@ -195,15 +224,12 @@
         (env-rain-new 0))
       {:x1 x1 :x2 x2 :y1 new-y1 :y2 new-y2})))
 
-
-
 (fn env-rain-update []
   (for [i 1 (length RAIN)]
     (let [{: x1 : x2 : y1 : y2} (. RAIN i)
           new-y1                (+ y1 1)
           new-y2                (+ y2 1)
           new-rain-data         (env-rain-gen x1 x2 y1 y2 new-y1 new-y2)]
-      ;; {:x1 x1 :x2 x2 :y1 new-y1 :y2 y2}
       (tset RAIN i new-rain-data))))
 
 (fn env-doall
@@ -211,21 +237,38 @@
   (env-rain-rndr)
   (env-rain-update))
 
-;; tiles.
+;; Tiles --
 
 (fn render-tile
   []
-  (map 0 0 30 17))
+  (add-print PLR.x)
+  (add-print PLR.y)
+  (add-print LVL.seg)
+  (when (< PLR.x 1)
+    (tset LVL :seg (- LVL.seg 1))
+    (spv :x 239))
+  (when (> PLR.x 239)
+    (tset LVL :seg (+ 1 LVL.seg))
+    (spv :x 0))
+
+  (let [lvl-x (* 30 LVL.seg)]
+    (map lvl-x 0 30 17)))
+
+  ;; (if (> PLR.x 235)
+  ;;   (do (map 30 0 30 17)
+  ;;       (spv :x 0))
+  ;;   (map 0 0 30 17)))
 
 ;; -- KICK IT OFF 👞 👢 👟
 
 (env-rain-init)
 (global TIC
- (fn tic []
-  (cls 0)
-  (render-tile)
-  (env-doall)
-  (dog-render)
-  (plr-doall)
-  (ppp)
-  (set t (+ t 1))))
+        (fn tic []
+          (cls 0)
+          (render-tile)
+          (lvl-doall)
+          (env-doall)
+          (dog-render)
+          (plr-doall)
+          (ppp)
+          (set t (+ t 1))))
