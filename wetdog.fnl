@@ -48,6 +48,7 @@
 
 (var DOG {:covered false
           :spr     352
+          :spr-cnt 0
           :x       210
           :y       120})
 
@@ -180,8 +181,16 @@
   []
   "Draw the dog."
   (let [{ : x : y : rot } DOG
-        dog-spr (if (% t 8))]
+        dog-animation-speed 0.1
+        dog-spr (if (% t 8))
+        inc-spr (and (> (math.random 0 10) 7) (> DOG.spr-cnt 5))]
+    (when inc-spr
+      (tset DOG :spr (+ 1 DOG.spr))
+      (tset DOG :spr-cnt 0)
+      (when (= DOG.spr 362) (tset DOG :spr 352)))
+    (tset DOG :spr-cnt (+ DOG.spr-cnt dog-animation-speed))
     (spr DOG.spr x y 0 1 0 rot)
+
     (when (dog-covered?) (slv :complete true))))
 
 ;; -- &s: ENV --
@@ -219,7 +228,7 @@
   "Checks if rain is colliding / needs to be regen'd"
   (if (> new-y2 DISP-H) ;; if rain goes past display height
     (env-rain-new 0)
-    (if (or (is-solid? x2 y2)
+    (if (or (is-solid? x2 (+ y2 1))
             (env-rain-touching-plr? x2 y2)) ;;
       (if (not (= y2 new-y1)) ;; top of drop hasn't caught up to bottom.
         {:x1 x1 :x2 x2 :y1 new-y1 :y2 y2}
