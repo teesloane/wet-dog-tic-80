@@ -43,6 +43,9 @@
           :jump-idx 0})
 
 (var LVL {:complete false
+          :haiku-shown? false
+          :start-haiku ["Dog left in the rain-" "I do not know you, and yet" "I have an umbrella."]
+          :end-haiku    ["Foo " "Boo" "Bar"]
           :seg 0})
 (fn slv [p v] (tset LVL p v))
 
@@ -117,9 +120,10 @@
   "Handles movement, collision and jumping."
   (let [{: x : y : rot } PLR]
     ;; General movement.
-    (when (btn 1) (spv :vy 1))
-    (when (btn 2) (spv :vx -1))
-    (when (btn 3) (spv :vx 1))
+    (when LVL.haiku-shown?
+      (when (btn 1) (spv :vy 1))
+      (when (btn 2) (spv :vx -1))
+      (when (btn 3) (spv :vx 1)))
 
     ;; X collisions.
     (when (or (is-solid? (+ x PLR.vx)   (+ y PLR.vy))
@@ -243,27 +247,32 @@
           new-rain-data         (env-rain-gen x1 x2 y1 y2 new-y1 new-y2)]
       (tset RAIN i new-rain-data))))
 
+;; Dialogue --
+
+(fn printc [s x y c]
+  (let [w (print s 0 (- 8))]
+    (print s (- x (/ w 2)) y (or c 15))))
+
+(fn env-menu-haiku
+  []
+  (when (not LVL.haiku-shown?)
+    (rect 22 30 200 67 3)
+    (for [i 1 (length LVL.start-haiku)]
+      (printc (. LVL.start-haiku i) (/ DISP-W 2) (+ (* i 9) (/ DISP-H 3.3))  12))
+    (printc "- Press 'x' to Start -" (/ DISP-W 2) (/ DISP-H 1.65)  15))
+  (when (btnp 5)
+    (tset LVL :haiku-shown? true)))
+
 (fn env-doall
   []
   (env-rain-rndr)
   (env-rain-update))
 
-;; Tiles --
 
-(fn lerp [a b t]
-  (+ (* a (- 1 t))
-     (* t b)))
+;; Env -- Map --
 
 (fn render-tile
   []
-  ;; Attempt camea
-  ;; (tset CAM :x
-  ;;       (math.min 120 (lerp CAM.x (- 120 PLR.x) 0.05)))
-  ;; (tset CAM :y
-  ;;       (math.min 64 (lerp CAM.y (- 64 PLR.y) 0.05)))
-  ;; (let [ccx (/ CAM.x (+ 8 1))
-  ;;       ccy (/ CAM.y (+ 8 1))]
-  ;;   (map (- 15 ccx) (- 8 ccy) (- (% CAM.x 8) 8) (- (% CAM.y 8) 8) 0))
   (map 0 0 30 17))
 
 ;; -- KICK IT OFF 👞 👢 👟
@@ -278,4 +287,5 @@
           (dog-render)
           (plr-doall)
           (ppp)
+          (env-menu-haiku)
           (set t (+ t 1))))
