@@ -30,9 +30,10 @@
 (var DISP-W 240)
 (var DISP-H 136)
 (var RAIN [])
+(var CAM {:x 120 :y 68})
 (var PLR {:jumping  false
-          :x        79
-          :y        85
+          :x       10
+          :y       30
           :vx       0
           :vy       0
           :rot      0
@@ -46,9 +47,9 @@
 (fn slv [p v] (tset LVL p v))
 
 (var DOG {:covered false
-          :spr     271
-          :x       200
-          :y       32})
+          :spr     352
+          :x       210
+          :y       120})
 
 ;; -- &s: HELPERS --
 
@@ -178,8 +179,9 @@
 (fn dog-render
   []
   "Draw the dog."
-  (let [{ : x : y : rot } DOG]
-    (spr DOG.spr x y -1 1 0 rot)
+  (let [{ : x : y : rot } DOG
+        dog-spr (if (% t 8))]
+    (spr DOG.spr x y 0 1 0 rot)
     (when (dog-covered?) (slv :complete true))))
 
 ;; -- &s: ENV --
@@ -239,25 +241,21 @@
 
 ;; Tiles --
 
+(fn lerp [a b t]
+  (+ (* a (- 1 t))
+     (* t b)))
+
 (fn render-tile
   []
-  (add-print PLR.x)
-  (add-print PLR.y)
-  (add-print LVL.seg)
-  (when (< PLR.x 1)
-    (tset LVL :seg (- LVL.seg 1))
-    (spv :x 239))
-  (when (> PLR.x 239)
-    (tset LVL :seg (+ 1 LVL.seg))
-    (spv :x 0))
-
-  (let [lvl-x (* 30 LVL.seg)]
-    (map lvl-x 0 30 17)))
-
-  ;; (if (> PLR.x 235)
-  ;;   (do (map 30 0 30 17)
-  ;;       (spv :x 0))
-  ;;   (map 0 0 30 17)))
+  ;; Attempt camea
+  ;; (tset CAM :x
+  ;;       (math.min 120 (lerp CAM.x (- 120 PLR.x) 0.05)))
+  ;; (tset CAM :y
+  ;;       (math.min 64 (lerp CAM.y (- 64 PLR.y) 0.05)))
+  ;; (let [ccx (/ CAM.x (+ 8 1))
+  ;;       ccy (/ CAM.y (+ 8 1))]
+  ;;   (map (- 15 ccx) (- 8 ccy) (- (% CAM.x 8) 8) (- (% CAM.y 8) 8) 0))
+  (map 0 0 30 17))
 
 ;; -- KICK IT OFF 👞 👢 👟
 
@@ -267,7 +265,7 @@
           (cls 0)
           (render-tile)
           (lvl-doall)
-          (env-doall)
+          (env-doall) ; perf
           (dog-render)
           (plr-doall)
           (ppp)
