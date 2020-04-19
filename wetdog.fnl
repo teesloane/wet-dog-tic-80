@@ -34,10 +34,10 @@
 (var CAM {:x 120 :y 68})
 
 (var LVL {:complete     false
-          :complete-cnt-down 10
+          :complete-cnt-down 15
           :start-haiku-shown? false
           :start-haiku  ["Dog left in the rain-" "I do not know you, and yet" "I have an umbrella."]
-          :end-haiku    ["The city knows rain " "I know a small breeze overhead" "looking up outside."]
+          :end-haiku    ["A city knows rain " "I know a small breeze overhead" "What does the dog know?"]
           :PLR-s        {:x 10 :y 72}
           :seg          0})
 
