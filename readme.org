@@ -1,10 +1,9 @@
-#+TITLE: Readme
-
 * Wet Dog
 
 #+BEGIN_QUOTE
 For a period of time, the recurring dreams always ended the same way: a dog sitting in the rain. I had to get there with my umbrella and keep it dry, even if just for a second.
 #+END_QUOTE
+#+html: <p align="center"><img src="doc/screen.gif" /></p>
 
 A story about rain, dogs, wind, dreams, &tc.
 
