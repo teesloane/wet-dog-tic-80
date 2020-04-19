@@ -100,6 +100,7 @@
 (fn plr-umbrella []
   "Toggles umbrella / gravity"
   (when (btnp 5)
+    (sfx 01)
     (if PLR.um-open
       (do
         (spv :um-open false)
@@ -199,7 +200,6 @@
   "Draw the dog."
   (let [{ : x : y : rot } DOG
         dog-animation-speed 0.1
-        dog-spr (if (% t 8))
         inc-spr (and (> (math.random 0 10) 7) (> DOG.spr-cnt 5))]
     (when inc-spr
       (tset DOG :spr (+ 1 DOG.spr))
@@ -219,6 +219,7 @@
         rnd-y-s (- (math.random 0 DISP-H) DISP-H)
         rnd-y-e (+ 3 (math.random 0 5) rnd-y-s)]
     {:x1 rnd-x-s :x2 rnd-x-s :y1 rnd-y-s :y2 rnd-y-e}))
+
 
 (fn env-rain-touching-plr? [x y]
   "Check if vals at x and y are touching the player."
@@ -281,7 +282,9 @@
   (when LVL.complete
     (rect 22 30 200 67 3)
     (for [i 1 (length LVL.end-haiku)]
-      (printc (. LVL.end-haiku i) (/ DISP-W 2) (+ (* i 9) (/ DISP-H 3.3))  12))))
+      (printc (. LVL.end-haiku i) (/ DISP-W 2) (+ (* i 9) (/ DISP-H 3.3))  12)))
+  )
+
 
 (fn env-level-over []
   (when LVL.complete
