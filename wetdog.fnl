@@ -2,11 +2,10 @@
 ;; desc:   Wet Dog.
 ;; script: fennel
 
-;; notes
-;; env = environment
-;; lvl = level
+;; ENV = environment (rain, etc.)
+;; LVL = level
 ;; PLR = player
-;; DOG = Poor ol' pup
+;; DOG = Poor ol' pup - who left you in the rain?
 
 ;; debug
 (var DBG [])
@@ -25,28 +24,34 @@
 
 ;; -- &s: CONSTS --
 
-(var JUMP-SEQ [-3 -3 -3 -3 -2 -2 -2 -2  -1 -1 0 0 0 0 0])
-(var GRAVITY 1)
+(var JUMP-SEQ [-3 -3 -3 -2 -2 -2 -1 -1 -1 -1 -1  -1  0 0 0 0])
+(var -REGULAR-GRAVITY 0.06)
+(var -UMBRELLA-GRAVITY 0.007)
+(var GRAVITY -REGULAR-GRAVITY)
 (var DISP-W 240)
 (var DISP-H 136)
 (var RAIN [])
 (var CAM {:x 120 :y 68})
+
+(var LVL {:complete     false
+          :complete-cnt-down 10
+          :start-haiku-shown? false
+          :start-haiku  ["Dog left in the rain-" "I do not know you, and yet" "I have an umbrella."]
+          :end-haiku    ["The city knows rain " "I know a small breeze overhead" "looking up outside."]
+          :PLR-s        {:x 10 :y 72}
+          :seg          0})
+
 (var PLR {:jumping  false
-          :x       10
-          :y       30
+          :x        LVL.PLR-s.x
+          :y        LVL.PLR-s.y
           :vx       0
           :vy       0
           :rot      0
           :spr      256
-          :grounded false
+          :grounded true
           :um-open  false
           :jump-idx 0})
 
-(var LVL {:complete false
-          :haiku-shown? false
-          :start-haiku ["Dog left in the rain-" "I do not know you, and yet" "I have an umbrella."]
-          :end-haiku    ["Foo " "Boo" "Bar"]
-          :seg 0})
 (fn slv [p v] (tset LVL p v))
 
 (var DOG {:covered false
@@ -98,11 +103,11 @@
     (if PLR.um-open
       (do
         (spv :um-open false)
-        (set GRAVITY 1)
+        (set GRAVITY -REGULAR-GRAVITY)
         (spv :spr 256))
       (do
         (spv :um-open true)
-        (set GRAVITY 0.25)
+        (set GRAVITY -UMBRELLA-GRAVITY)
         (spv :spr 257)))))
 
 (fn plr-jump []
@@ -115,12 +120,18 @@
         (spv :jump-idx incd-j-idx)
         (spv :vy next-jump-val)))))
 
+(fn plr-reset-pos
+  []
+  ;; TODO play sound when resetting.
+  (spv :x LVL.PLR-s.x)
+  (spv :y LVL.PLR-s.y))
+
 (fn plr-move
   []
   "Handles movement, collision and jumping."
   (let [{: x : y : rot } PLR]
     ;; General movement.
-    (when LVL.haiku-shown?
+    (when LVL.start-haiku-shown?
       (when (btn 1) (spv :vy 1))
       (when (btn 2) (spv :vx -1))
       (when (btn 3) (spv :vx 1)))
@@ -152,7 +163,9 @@
     (plr-jump)
     ;; set the pos, and then reset the velocity.
     (set-plr-pos)
-    (spv :vx 0) (spv :vy 0)))
+    (spv :vx 0) ; (spv :vy 0)
+    (when (or (> x 240) (> y 142)) (plr-reset-pos))))
+
 
 (fn plr-render
   []
@@ -255,19 +268,33 @@
 
 (fn env-menu-haiku
   []
-  (when (not LVL.haiku-shown?)
+  ;; Show start-haiku if it hasn't shown syet
+  (when (not LVL.start-haiku-shown?)
     (rect 22 30 200 67 3)
     (for [i 1 (length LVL.start-haiku)]
       (printc (. LVL.start-haiku i) (/ DISP-W 2) (+ (* i 9) (/ DISP-H 3.3))  12))
     (printc "- Press 'x' to Start -" (/ DISP-W 2) (/ DISP-H 1.65)  15))
+  ;; confirm haiku, and start level.
   (when (btnp 5)
-    (tset LVL :haiku-shown? true)))
+    (tset LVL :start-haiku-shown? true))
+  ;; end haiku
+  (when LVL.complete
+    (rect 22 30 200 67 3)
+    (for [i 1 (length LVL.end-haiku)]
+      (printc (. LVL.end-haiku i) (/ DISP-W 2) (+ (* i 9) (/ DISP-H 3.3))  12))))
+
+(fn env-level-over []
+  (when LVL.complete
+    (tset LVL :complete-cnt-down (- LVL.complete-cnt-down 0.03))
+    (when (<= LVL.complete-cnt-down 0)
+      (rect 0 0 240 136 8)
+      (tset LVL :complete-cnt-down 0))))
 
 (fn env-doall
   []
   (env-rain-rndr)
-  (env-rain-update))
-
+  (env-rain-update)
+  (env-menu-haiku))
 
 ;; Env -- Map --
 
@@ -277,15 +304,15 @@
 
 ;; -- KICK IT OFF 👞 👢 👟
 
+
 (env-rain-init)
 (global TIC
         (fn tic []
           (cls 0)
           (render-tile)
-          (lvl-doall)
           (env-doall) ; perf
           (dog-render)
           (plr-doall)
+          (env-level-over)
           (ppp)
-          (env-menu-haiku)
           (set t (+ t 1))))
